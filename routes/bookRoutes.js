@@ -8,6 +8,8 @@ router.route('/').post(controller.createBook).get(controller.getBooks);
 
 router
   .route('/:id')
-  .get(validateObjectId, controller.getBook);
+  .get(validateObjectId, controller.getBook)
+  .put(validateObjectId, controller.updateBook)
+  .delete(validateObjectId, controller.deleteBook);
 
 module.exports = router;

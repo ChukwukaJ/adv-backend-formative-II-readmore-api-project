@@ -36,4 +36,44 @@ const getBook = async (req, res) => {
   }
 };
 
-module.exports = { createBook, getBooks, getBook };
+const updateBook = async (req, res) => {
+  try {
+    const book = await Book.findById(req.params.id);
+    if (!book) return res.status(404).json({ message: 'Book not found' });
+
+    const body = req.body || {};
+    const updates = {};
+    ['title', 'genre', 'price', 'publishedYear', 'author'].forEach((field) => {
+      if (body[field] !== undefined) updates[field] = body[field];
+    });
+
+    if (updates.author && !(await authorExists(updates.author))) {
+      return res.status(400).json({ message: 'author must be the id of an existing author' });
+    }
+
+    book.set(updates);
+    await book.save();
+    await book.populate('author');
+    res.json(book);
+  } catch (err) {
+    handleError(res, err);
+  }
+};
+
+const deleteBook = async (req, res) => {
+  try {
+    const book = await Book.findByIdAndDelete(req.params.id);
+    if (!book) return res.status(404).json({ message: 'Book not found' });
+    res.json({ message: 'Book deleted' });
+  } catch (err) {
+    handleError(res, err);
+  }
+};
+
+module.exports = {
+  createBook,
+  getBooks,
+  getBook,
+  updateBook,
+  deleteBook,
+};
