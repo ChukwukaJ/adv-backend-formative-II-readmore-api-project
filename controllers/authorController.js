@@ -19,4 +19,14 @@ const getAuthors = async (req, res) => {
   }
 };
 
-module.exports = { createAuthor, getAuthors };
+const getAuthor = async (req, res) => {
+  try {
+    const author = await Author.findById(req.params.id);
+    if (!author) return res.status(404).json({ message: 'Author not found' });
+    res.json(author);
+  } catch (err) {
+    handleError(res, err);
+  }
+};
+
+module.exports = { createAuthor, getAuthors, getAuthor };
