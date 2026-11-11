@@ -5,6 +5,8 @@ const { authorExists, validateBookRules, titleExistsForAuthor } = require('../ut
 
 const COLLATION = { locale: 'en', strength: 2 };
 
+const SORTABLE = ['price', 'title', 'publishedYear'];
+
 const escapeRegex = (s) => s.replace(/[.*+?^$()|[\]\\{}]/g, '\\$&');
 
 const createBook = async (req, res) => {
@@ -32,7 +34,7 @@ const createBook = async (req, res) => {
 
 const getBooks = async (req, res) => {
   try {
-    const { genre, minPrice, maxPrice, author, search } = req.query;
+    const { genre, minPrice, maxPrice, author, search, sort, order } = req.query;
     const filter = {};
 
     // Each parameter only adds a key when it is present, so any combination works
@@ -55,8 +57,17 @@ const getBooks = async (req, res) => {
       }
     }
 
+    if (sort && !SORTABLE.includes(sort)) {
+      return res.status(400).json({ message: 'sort must be one of: ' + SORTABLE.join(', ') });
+    }
+    if (order && !['asc', 'desc'].includes(order)) {
+      return res.status(400).json({ message: 'order must be asc or desc' });
+    }
+    const sortBy = sort ? { [sort]: order === 'desc' ? -1 : 1 } : { createdAt: -1 };
+
     const books = await Book.find(filter)
       .collation(COLLATION)
+      .sort(sortBy)
       .populate('author');
     res.json(books);
   } catch (err) {
