@@ -34,7 +34,7 @@ const createBook = async (req, res) => {
 
 const getBooks = async (req, res) => {
   try {
-    const { genre, minPrice, maxPrice, author, search, sort, order } = req.query;
+    const { genre, minPrice, maxPrice, author, search, sort, order, page, limit } = req.query;
     const filter = {};
 
     // Each parameter only adds a key when it is present, so any combination works
@@ -65,11 +65,18 @@ const getBooks = async (req, res) => {
     }
     const sortBy = sort ? { [sort]: order === 'desc' ? -1 : 1 } : { createdAt: -1 };
 
-    const books = await Book.find(filter)
+    const total = await Book.countDocuments(filter).collation(COLLATION);
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const limitNum = limit ? Math.max(parseInt(limit, 10) || 10, 1) : total;
+
+    const results = await Book.find(filter)
       .collation(COLLATION)
       .sort(sortBy)
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum)
       .populate('author');
-    res.json(books);
+
+    res.json({ page: pageNum, limit: limitNum, total, results });
   } catch (err) {
     handleError(res, err);
   }
