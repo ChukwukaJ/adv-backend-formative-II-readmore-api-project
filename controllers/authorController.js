@@ -49,10 +49,21 @@ const updateAuthor = async (req, res) => {
   }
 };
 
+// Policy: Option A. Block the delete (409) while the author still has books.
 const deleteAuthor = async (req, res) => {
   try {
-    const author = await Author.findByIdAndDelete(req.params.id);
+    const author = await Author.findById(req.params.id);
     if (!author) return res.status(404).json({ message: 'Author not found' });
+
+    const bookCount = await Book.countDocuments({ author: author._id });
+    if (bookCount > 0) {
+      return res.status(409).json({
+        message:
+          'Cannot delete author: ' + bookCount + ' book(s) still belong to them. Delete or reassign those books first.',
+      });
+    }
+
+    await author.deleteOne();
     res.json({ message: 'Author deleted' });
   } catch (err) {
     handleError(res, err);
