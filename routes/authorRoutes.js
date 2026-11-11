@@ -9,6 +9,7 @@ router.route('/').post(controller.createAuthor).get(controller.getAuthors);
 router
   .route('/:id')
   .get(validateObjectId, controller.getAuthor)
-  .put(validateObjectId, controller.updateAuthor);
+  .put(validateObjectId, controller.updateAuthor)
+  .delete(validateObjectId, controller.deleteAuthor);
 
 module.exports = router;
