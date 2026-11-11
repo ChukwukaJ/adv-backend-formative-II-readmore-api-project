@@ -13,5 +13,6 @@ router
   .delete(validateObjectId, controller.deleteAuthor);
 
 router.get('/:id/books', validateObjectId, controller.getAuthorBooks);
+router.get('/:id/stats', validateObjectId, controller.getAuthorStats);
 
 module.exports = router;

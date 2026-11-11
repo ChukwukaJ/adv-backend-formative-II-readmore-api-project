@@ -80,6 +80,37 @@ const getAuthorBooks = async (req, res) => {
   }
 };
 
+const getAuthorStats = async (req, res) => {
+  try {
+    const author = await Author.findById(req.params.id);
+    if (!author) return res.status(404).json({ message: 'Author not found' });
+
+    const books = await Book.find({ author: author._id }).sort({ price: 1 });
+
+    // No books: an average of nothing is undefined, so return null (not 0, which would mean "free").
+    if (books.length === 0) {
+      return res.json({
+        author: author.name,
+        bookCount: 0,
+        averagePrice: null,
+        cheapestBook: null,
+        mostExpensiveBook: null,
+      });
+    }
+
+    const totalPrice = books.reduce((sum, book) => sum + book.price, 0);
+    res.json({
+      author: author.name,
+      bookCount: books.length,
+      averagePrice: Number((totalPrice / books.length).toFixed(2)),
+      cheapestBook: books[0].title,
+      mostExpensiveBook: books[books.length - 1].title,
+    });
+  } catch (err) {
+    handleError(res, err);
+  }
+};
+
 module.exports = {
   createAuthor,
   getAuthors,
@@ -87,4 +118,5 @@ module.exports = {
   updateAuthor,
   deleteAuthor,
   getAuthorBooks,
+  getAuthorStats,
 };
