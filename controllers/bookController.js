@@ -1,6 +1,6 @@
 const Book = require('../models/Book');
 const handleError = require('../utils/handleError');
-const { authorExists, titleExistsForAuthor } = require('../utils/bookRules');
+const { authorExists, validateBookRules, titleExistsForAuthor } = require('../utils/bookRules');
 
 const createBook = async (req, res) => {
   try {
@@ -9,6 +9,9 @@ const createBook = async (req, res) => {
     if (!(await authorExists(author))) {
       return res.status(400).json({ message: 'author must be the id of an existing author' });
     }
+
+    const ruleError = validateBookRules({ price, publishedYear });
+    if (ruleError) return res.status(422).json({ message: ruleError });
 
     if (typeof title === 'string' && (await titleExistsForAuthor(author, title.trim()))) {
       return res.status(409).json({ message: 'This author already has a book with that title' });
@@ -54,6 +57,9 @@ const updateBook = async (req, res) => {
     if (updates.author && !(await authorExists(updates.author))) {
       return res.status(400).json({ message: 'author must be the id of an existing author' });
     }
+
+    const ruleError = validateBookRules(updates);
+    if (ruleError) return res.status(422).json({ message: ruleError });
 
     const title = updates.title ?? book.title;
     const author = updates.author ?? book.author;
