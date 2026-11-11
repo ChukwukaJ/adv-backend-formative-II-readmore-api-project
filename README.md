@@ -251,3 +251,9 @@ nothing is undefined, and 0 would wrongly suggest free books.
 ### GET /books query parameters
 `genre`, `minPrice`, `maxPrice`, `author`, `search`, `sort` (price, title, publishedYear),
 `order` (asc, desc), `page`, `limit`. Only the parameters present are applied.
+
+## Submission
+
+- Repository: https://github.com/ChukwukaJ/adv-backend-formative-II-readmore-api-project
+- Video walkthrough: VIDEO_LINK_HERE
+
