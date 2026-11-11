@@ -198,3 +198,56 @@ Submit a **a Github repository link** containing your project code. The reposito
 
 Good luck — build it one endpoint at a time, and test each in your API client before moving on.
 ---
+
+---
+
+## My Implementation
+
+### Setup
+1. `npm install`
+2. Copy `.env.example` to `.env` and set `MONGO_URI` (Atlas or local) and `PORT`.
+3. `npm run dev` (or `npm start`).
+
+### Structure
+- `server.js`: connects to MongoDB, then starts listening.
+- `config/db.js`: database connection.
+- `models/`: Author and Book schemas (Book.author references Author).
+- `controllers/`: all logic and business rules.
+- `routes/`: wiring only.
+- `middleware/validateObjectId.js`: 400 on malformed ids.
+- `utils/`: error handler and book rule helpers.
+
+### Endpoints
+| Method | Path | Notes |
+|--------|------|-------|
+| GET | / | health check |
+| POST, GET | /authors | create, list |
+| GET, PUT, DELETE | /authors/:id | 404 if not found |
+| GET | /authors/:id/books | books by that author |
+| GET | /authors/:id/stats | count, average, cheapest, most expensive |
+| POST, GET | /books | GET supports filter, sort, pagination |
+| GET, PUT, DELETE | /books/:id | author is populated on reads |
+
+### Business rules
+| Rule | Status | Where |
+|------|--------|-------|
+| Author must exist | 400 | createBook, updateBook |
+| Duplicate title for the same author (case-insensitive) | 409 | createBook, updateBook |
+| price <= 0, or publishedYear < 1450 or in the future | 422 | createBook, updateBook |
+| Delete author who still has books | 409 | deleteAuthor |
+| Malformed id | 400 | validateObjectId |
+| Missing id | 404 | all :id endpoints |
+
+### Author delete policy: Option A (block)
+Deleting an author with books returns 409. Cascade would silently destroy books that may already
+have been sold, and reassign would wrongly attribute books to a fallback author. Blocking is the
+only option that loses or misrepresents nothing. Downside: an admin must delete or reassign each
+book first, which is tedious for authors with many titles.
+
+### Stats with no books
+Returns bookCount 0 and null for averagePrice, cheapestBook and mostExpensiveBook. An average of
+nothing is undefined, and 0 would wrongly suggest free books.
+
+### GET /books query parameters
+`genre`, `minPrice`, `maxPrice`, `author`, `search`, `sort` (price, title, publishedYear),
+`order` (asc, desc), `page`, `limit`. Only the parameters present are applied.
