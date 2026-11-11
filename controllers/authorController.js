@@ -29,4 +29,28 @@ const getAuthor = async (req, res) => {
   }
 };
 
-module.exports = { createAuthor, getAuthors, getAuthor };
+const updateAuthor = async (req, res) => {
+  try {
+    const body = req.body || {};
+    const updates = {};
+    ['name', 'country', 'bio'].forEach((field) => {
+      if (body[field] !== undefined) updates[field] = body[field];
+    });
+
+    const author = await Author.findByIdAndUpdate(req.params.id, updates, {
+      new: true,
+      runValidators: true,
+    });
+    if (!author) return res.status(404).json({ message: 'Author not found' });
+    res.json(author);
+  } catch (err) {
+    handleError(res, err);
+  }
+};
+
+module.exports = {
+  createAuthor,
+  getAuthors,
+  getAuthor,
+  updateAuthor,
+};

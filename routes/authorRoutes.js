@@ -8,6 +8,7 @@ router.route('/').post(controller.createAuthor).get(controller.getAuthors);
 
 router
   .route('/:id')
-  .get(validateObjectId, controller.getAuthor);
+  .get(validateObjectId, controller.getAuthor)
+  .put(validateObjectId, controller.updateAuthor);
 
 module.exports = router;
