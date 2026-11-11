@@ -1,4 +1,5 @@
 const Author = require('../models/Author');
+const Book = require('../models/Book');
 const handleError = require('../utils/handleError');
 
 const createAuthor = async (req, res) => {
@@ -58,10 +59,21 @@ const deleteAuthor = async (req, res) => {
   }
 };
 
+const getAuthorBooks = async (req, res) => {
+  try {
+    const author = await Author.findById(req.params.id);
+    if (!author) return res.status(404).json({ message: 'Author not found' });
+    res.json(await Book.find({ author: author._id }));
+  } catch (err) {
+    handleError(res, err);
+  }
+};
+
 module.exports = {
   createAuthor,
   getAuthors,
   getAuthor,
   updateAuthor,
   deleteAuthor,
+  getAuthorBooks,
 };

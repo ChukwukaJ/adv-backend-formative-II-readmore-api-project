@@ -12,4 +12,6 @@ router
   .put(validateObjectId, controller.updateAuthor)
   .delete(validateObjectId, controller.deleteAuthor);
 
+router.get('/:id/books', validateObjectId, controller.getAuthorBooks);
+
 module.exports = router;
