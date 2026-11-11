@@ -1,6 +1,11 @@
+const mongoose = require('mongoose');
 const Book = require('../models/Book');
 const handleError = require('../utils/handleError');
 const { authorExists, validateBookRules, titleExistsForAuthor } = require('../utils/bookRules');
+
+const COLLATION = { locale: 'en', strength: 2 };
+
+const escapeRegex = (s) => s.replace(/[.*+?^$()|[\]\\{}]/g, '\\$&');
 
 const createBook = async (req, res) => {
   try {
@@ -27,7 +32,33 @@ const createBook = async (req, res) => {
 
 const getBooks = async (req, res) => {
   try {
-    res.json(await Book.find().populate('author'));
+    const { genre, minPrice, maxPrice, author, search } = req.query;
+    const filter = {};
+
+    // Each parameter only adds a key when it is present, so any combination works
+    // and no parameters at all leaves filter = {} (everything).
+    if (genre) filter.genre = genre;
+    if (author) {
+      if (!mongoose.isValidObjectId(author)) {
+        return res.status(400).json({ message: 'author must be a valid id' });
+      }
+      filter.author = author;
+    }
+    if (search) filter.title = { $regex: escapeRegex(search), $options: 'i' };
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      filter.price = {};
+      if (minPrice !== undefined) filter.price.$gte = Number(minPrice);
+      if (maxPrice !== undefined) filter.price.$lte = Number(maxPrice);
+      if (Object.values(filter.price).some(Number.isNaN)) {
+        return res.status(400).json({ message: 'minPrice and maxPrice must be numbers' });
+      }
+    }
+
+    const books = await Book.find(filter)
+      .collation(COLLATION)
+      .populate('author');
+    res.json(books);
   } catch (err) {
     handleError(res, err);
   }
