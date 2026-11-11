@@ -18,4 +18,22 @@ const createBook = async (req, res) => {
   }
 };
 
-module.exports = { createBook };
+const getBooks = async (req, res) => {
+  try {
+    res.json(await Book.find().populate('author'));
+  } catch (err) {
+    handleError(res, err);
+  }
+};
+
+const getBook = async (req, res) => {
+  try {
+    const book = await Book.findById(req.params.id).populate('author');
+    if (!book) return res.status(404).json({ message: 'Book not found' });
+    res.json(book);
+  } catch (err) {
+    handleError(res, err);
+  }
+};
+
+module.exports = { createBook, getBooks, getBook };
