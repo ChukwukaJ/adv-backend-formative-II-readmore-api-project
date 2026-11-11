@@ -5,6 +5,8 @@ const connectDB = require('./config/db');
 const app = express();
 app.use(express.json());
 
+app.get('/', (req, res) => res.json({ message: 'ReadMore API is running' }));
+
 const PORT = process.env.PORT || 3000;
 
 const start = async () => {
